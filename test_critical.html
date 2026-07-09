@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <input type="hidden" id="result" value='[{"url":"https://example.com/style.css","text":"body { color: red; }","ranges":[{"start":0,"end":20}]},{"url":"https://example.com/script.js","text":"console.log();","ranges":[{"start":0,"end":14}]}]'>
+    <input type="hidden" id="critical" value="">
+    <script>
+        function critical() {
+            let resultElement = document.getElementById('result');
+            if (!resultElement.value) return;
+
+            let files;
+            try {
+                files = JSON.parse(resultElement.value);
+            } catch (e) {
+                return;
+            }
+
+            let usedCode = '';
+
+            for (file in files) {
+                usedCode += '/* FILENAME '+ files[file].url+' */\n';
+                if (files[file].url.endsWith('.css')) {
+                    ranges = files[file];
+                    let text = ranges.text;
+                    for (let i = 0; i < ranges.ranges.length; i++) {
+                        const range = ranges.ranges[i];
+                        usedCode += text.substring(range.start, range.end);
+                    }
+                }
+                usedCode += '\n/* END FILE '+ files[file].url+ ' */\n\n';
+            }
+
+            document.getElementById('critical').value = usedCode;
+        }
+        critical();
+        console.log(document.getElementById('critical').value);
+    </script>
+</body>
+</html>

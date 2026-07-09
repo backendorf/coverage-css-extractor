@@ -76,7 +76,7 @@
 
 			for (file in files) {
 				usedCode += '/* FILENAME '+ files[file].url+' */\n';
-				if (files[file].url.split('.').pop() ==='css') {
+				if (files[file].url.endsWith('.css')) {
 					// files.splice(file);
 					ranges = files[file];
 					let text = ranges.text;
