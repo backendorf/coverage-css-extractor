@@ -17,10 +17,10 @@ function critical() {
 
     let usedCode = '';
 
-    for (file in files) {
+    for (const file in files) {
         usedCode += '/* FILENAME '+ files[file].url+' */\n';
         if (files[file].url.endsWith('.css')) {
-            ranges = files[file];
+            const ranges = files[file];
             let text = ranges.text;
             for (let i = 0; i < ranges.ranges.length; i++) {
                 const range = ranges.ranges[i];
