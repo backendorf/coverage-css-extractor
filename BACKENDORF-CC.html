@@ -1,65 +1,96 @@
-<!<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Critical extractor from Coverage JSON</title>
-	</head>
-	<body>
-		<input type="file" id="selectFiles" value="Import" /><br />
-		<button id="import">Import</button>
-		<button id="convert" onclick="critical()">Convert</button>
-		<textarea id="result"></textarea>
-		<textarea id="critical"></textarea>
-		<script type="text/javascript">
-			document.getElementById('import').onclick = function() {
-				var files = document.getElementById('selectFiles').files;
-				console.log(files);
-				if (files.length <= 0) {
-					return false;
-				}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Critical extractor from Coverage JSON</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans p-4 sm:p-6 min-h-screen">
+	<div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-100">
+		<h1 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-900 border-b pb-4">Critical Extractor from Coverage JSON</h1>
 
-				var fr = new FileReader();
+		<div class="mb-8 flex flex-col sm:flex-row sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+			<input type="file" id="selectFiles" class="block w-full text-sm text-gray-500
+			  file:mr-4 file:py-2.5 file:px-4
+			  file:rounded-md file:border-0
+			  file:text-sm file:font-semibold
+			  file:bg-blue-100 file:text-blue-700
+			  hover:file:bg-blue-200 cursor-pointer focus:outline-none" />
+			<button id="import" class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-full sm:w-auto shadow-sm">Import</button>
+			<button id="convert" onclick="critical()" class="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-md hover:bg-emerald-700 transition-colors focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 w-full sm:w-auto shadow-sm">Convert</button>
+		</div>
 
-				fr.onload = function(e) { 
-					console.log(e);
-					var result = JSON.parse(e.target.result);
-					var formatted = JSON.stringify(result, null, 2);
-					document.getElementById('result').value = formatted;
-				}
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div class="flex flex-col">
+				<label for="result" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+					<svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+					Imported JSON
+				</label>
+				<textarea id="result" class="w-full flex-grow min-h-[50vh] p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm outline-none resize-y shadow-inner bg-gray-50" placeholder="JSON content will appear here after importing..."></textarea>
+			</div>
+			<div class="flex flex-col">
+				<label for="critical" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+					<svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+					Extracted Critical CSS
+				</label>
+				<textarea id="critical" class="w-full flex-grow min-h-[50vh] p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-sm outline-none resize-y shadow-inner bg-gray-50" placeholder="Extracted CSS will appear here after converting..."></textarea>
+			</div>
+		</div>
+	</div>
 
-				fr.readAsText(files.item(0));
-			};
+	<script type="text/javascript">
+		document.getElementById('import').onclick = function() {
+			var files = document.getElementById('selectFiles').files;
+			console.log(files);
+			if (files.length <= 0) {
+				return false;
+			}
 
-			function critical() {
-				// debugger;
-				let files = JSON.parse(document.getElementById('result').value);
-				let usedCode = '';
+			var fr = new FileReader();
 
-				for (file in files) {
-					usedCode += '/* FILENAME '+ files[file].url+' */';
-					if (files[file].url.split('.').pop() ==='css') {
-						// files.splice(file);
-						ranges = files[file];
-						let text = ranges.text;
-						for (let i = 0; i < ranges.ranges.length; i++) {
-							const range = ranges.ranges[i];
-							// console.info(text.substring(range.start, range.end));
-							usedCode += text.substring(range.start, range.end);
-						}
+			fr.onload = function(e) {
+				console.log(e);
+				var result = JSON.parse(e.target.result);
+				var formatted = JSON.stringify(result, null, 2);
+				document.getElementById('result').value = formatted;
+			}
+
+			fr.readAsText(files.item(0));
+		};
+
+		function critical() {
+			// debugger;
+			let resultElement = document.getElementById('result');
+			if (!resultElement.value) return;
+
+			let files;
+			try {
+				files = JSON.parse(resultElement.value);
+			} catch (e) {
+				alert("Invalid JSON data.");
+				return;
+			}
+
+			let usedCode = '';
+
+			for (file in files) {
+				usedCode += '/* FILENAME '+ files[file].url+' */\n';
+				if (files[file].url.split('.').pop() ==='css') {
+					// files.splice(file);
+					ranges = files[file];
+					let text = ranges.text;
+					for (let i = 0; i < ranges.ranges.length; i++) {
+						const range = ranges.ranges[i];
+						// console.info(text.substring(range.start, range.end));
+						usedCode += text.substring(range.start, range.end);
 					}
-					usedCode += '/* END FILE '+ files[file].url+ ' /*';
 				}
-
-				document.getElementById('critical').value = usedCode;
+				usedCode += '\n/* END FILE '+ files[file].url+ ' */\n\n';
 			}
-		</script>
-		<style type="text/css">
-			textarea {
-				width: 100vw;
-				height: 40vh;
-			}
-		</style>
 
-	</body>
-	</html>
+			document.getElementById('critical').value = usedCode;
+		}
+	</script>
+</body>
+</html>
